@@ -61,6 +61,9 @@ npm run dev
 
 npm install -D @types/node
 npm i --save bootstrap @popperjs/core
+npm i --save-dev sass
+npm i -D json-server
+npm install -D @types/bootstrap
 
 svelte choise
 
@@ -69,4 +72,6 @@ svelte choise
 │
 ◇  Add type checking with TypeScript?
 │  Yes, using TypeScript syntax
+
+
 ```
