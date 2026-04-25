@@ -1,5 +1,5 @@
 <script lang="ts">
-	import favicon from "$lib/assets/favicon.svg";
+	import favicon from "$lib/assets/basket.png";
 	let { children } = $props();
 	import { onMount } from "svelte";
 	import "../scss/styles.scss";
@@ -12,6 +12,8 @@
 		{ path: "/column", name: "Column" },
 		{ path: "/color", name: "Color" },
 		{ path: "/table", name: "Table" },
+		{ path: "/alert", name: "Alert" },
+		{ path: "/button", name: "Button" },
 	];
 
 	let activeIndex = $state(0);
@@ -19,6 +21,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<title>full basket</title>
 </svelte:head>
 
 {#snippet getnavli(path: string, name: string, index: number)}
