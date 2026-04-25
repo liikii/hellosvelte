@@ -9,15 +9,9 @@
 	});
 	let menuItems = [
 		{ path: "/", name: "Home" },
-		{ path: "/dashboard", name: "Dashboard" },
-		{ path: "/orders", name: "Orders" },
-		{ path: "/products", name: "Products" },
-		{ path: "/customers", name: "Customers" },
-		{ path: "/b", name: "Home" },
-		{ path: "/dashboardb", name: "Dashboard" },
-		{ path: "/ordersb", name: "Orders" },
-		{ path: "/productsb", name: "Products" },
-		{ path: "/customersb", name: "Customers" },
+		{ path: "/column", name: "Column" },
+		{ path: "/color", name: "Color" },
+		{ path: "/table", name: "Table" },
 	];
 
 	let activeIndex = $state(0);
@@ -29,7 +23,7 @@
 
 {#snippet getnavli(path: string, name: string, index: number)}
 <li class="nav-item">
-	<a href="/" class="nav-link" aria-current="page" 
+	<a href="{path}" class="nav-link" aria-current="page" 
 		class:active={activeIndex === index} 
 		onclick={() => activeIndex = index}>
 		{name}
@@ -60,7 +54,7 @@
 		</div>
 
 		<!-- 右侧 5/6 -->
-		<div class="col-10 bg-light p-4 overflow-auto">
+		<div class="col-10 bg-light p-4 overflow-auto h-100">
 			{@render children()}
 		</div>
 	</div>
