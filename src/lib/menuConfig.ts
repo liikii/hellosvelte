@@ -14,4 +14,6 @@ export const menuItems = [
     { path: "/card", name: "Card" },
     { path: "/dropdown", name: "Dropdown" },
     { path: "/collapse", name: "Collapse" },
+    { path: "/navbar", name: "Navbar" },
+    { path: "/carousel", name: "Carousel" },
 ];

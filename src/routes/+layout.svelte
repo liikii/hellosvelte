@@ -10,6 +10,10 @@
 	
 	let { children } = $props();
 	let activeIndex = $state(0);
+	
+	$effect(() => {
+		console.log('current menu index ', activeIndex);
+	});
 
 </script>
 
