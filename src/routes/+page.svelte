@@ -1,4 +1,4 @@
-<h1>svelte bootstrap example</h1> 
+<h1>bootstrap example</h1> 
 <p>do practice</p>
 <i class="bi bi-basket2-fill text-success fs-1"></i>
 <h2>bootstrap grid</h2>

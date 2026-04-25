@@ -24,3 +24,9 @@ export const menuItems = [
     { path: "/utilities", name: "Utilities" },
     { path: "/flex", name: "Flex" },
 ];
+
+
+export const svelteMenuItems = [
+    { path: "/v", name: "Home" },
+    { path: "/v/style", name: "Style" },
+];
