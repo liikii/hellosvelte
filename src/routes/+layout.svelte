@@ -3,6 +3,7 @@
 	import { menuItems } from "$lib/menuConfig";
 	import { onMount } from "svelte";
 	import "../scss/styles.scss";
+	import { goto } from "$app/navigation";
 	
 	onMount(async () => {
 		await import("bootstrap");
@@ -13,6 +14,9 @@
 	
 	$effect(() => {
 		console.log('current menu index ', activeIndex);
+		if (activeIndex === 0) {
+			goto('/'); 
+		}
 	});
 
 </script>

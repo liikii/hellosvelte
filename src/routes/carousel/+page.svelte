@@ -8,7 +8,7 @@
 <div id="carouselExampleRide" class="carousel slide h-50" data-bs-ride="true">
   <div class="carousel-inner h-100" >
     <div class="carousel-item active w-100 h-100" >
-      <img src={dogimg} class="w-100 h-100" style="object-fit: fill;" alt="...">
+      <img src={dogimg} class="w-100 h-100" style="object-fit: contain;" alt="...">
     </div>
     <div class="carousel-item">
       <img src={catimg} class="" style="object-fit: contain;" alt="...">

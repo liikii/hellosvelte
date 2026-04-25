@@ -16,4 +16,11 @@ export const menuItems = [
     { path: "/collapse", name: "Collapse" },
     { path: "/navbar", name: "Navbar" },
     { path: "/carousel", name: "Carousel" },
+    { path: "/modal", name: "Modal" },
+    { path: "/tooltip", name: "Tooltip" },
+    { path: "/popover", name: "Popover" },
+    { path: "/toast", name: "Toast" },
+    { path: "/scrollspy", name: "Scrollspy" },
+    { path: "/utilities", name: "Utilities" },
+    { path: "/flex", name: "Flex" },
 ];
