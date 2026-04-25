@@ -1,1 +1,13 @@
 @import "bootstrap/scss/bootstrap";
+
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+/* 👇 强制覆盖，100% 生效 */
+@font-face {
+  font-family: "Bootstrap Icons";
+  src: url("/fonts/bootstrap-icons.woff2") format("woff2");
+  src: url("/fonts/bootstrap-icons.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}

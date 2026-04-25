@@ -64,6 +64,8 @@ npm i --save bootstrap @popperjs/core
 npm i --save-dev sass
 npm i -D json-server
 npm install -D @types/bootstrap
+npm install -D @sveltejs/adapter-static
+npm i bootstrap-icons
 
 svelte choise
 
