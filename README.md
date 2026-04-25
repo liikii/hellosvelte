@@ -75,5 +75,13 @@ svelte choise
 ◇  Add type checking with TypeScript?
 │  Yes, using TypeScript syntax
 
-
+npm i lucide-svelte --save-dev
 ```
+
+
+## 这里的开发建议（避坑指南）：
+
+* 不要滥用 JS 初始化：对于 Tooltip 或 Popover，尽量封装成 Svelte 的 action（use 指令），这样组件销毁时会自动清理内存，不会导致后台页面开久了变卡。
+* 图标方案：除了 Bootstrap Icons，后台常用 Lucide Svelte，它的图标更简洁、更有现代感，而且是纯组件式的。
+* 数据流：建议把 API 请求逻辑放在 SvelteKit 的 +page.ts 加载函数里，让后台实现“秒开”的效果。
+
