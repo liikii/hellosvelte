@@ -1,0 +1,17 @@
+export const menuItems = [
+    { path: "/", name: "Home" },
+    { path: "/column", name: "Column" },
+    { path: "/color", name: "Color" },
+    { path: "/table", name: "Table" },
+    { path: "/alert", name: "Alert" },
+    { path: "/button", name: "Button" },
+    { path: "/btngroup", name: "Btn Group" },
+    { path: "/badge", name: "Badge" },
+    { path: "/progress", name: "Progress" },
+    { path: "/spinner", name: "Spinner" },
+    { path: "/pagination", name: "Pagination" },
+    { path: "/listgroup", name: "List Group" },
+    { path: "/card", name: "Card" },
+    { path: "/dropdown", name: "Dropdown" },
+    { path: "/collapse", name: "Collapse" },
+];

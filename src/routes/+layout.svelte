@@ -1,22 +1,16 @@
 <script lang="ts">
 	import favicon from "$lib/assets/basket.png";
-	let { children } = $props();
+	import { menuItems } from "$lib/menuConfig";
 	import { onMount } from "svelte";
 	import "../scss/styles.scss";
-
+	
 	onMount(async () => {
 		await import("bootstrap");
 	});
-	let menuItems = [
-		{ path: "/", name: "Home" },
-		{ path: "/column", name: "Column" },
-		{ path: "/color", name: "Color" },
-		{ path: "/table", name: "Table" },
-		{ path: "/alert", name: "Alert" },
-		{ path: "/button", name: "Button" },
-	];
-
+	
+	let { children } = $props();
 	let activeIndex = $state(0);
+
 </script>
 
 <svelte:head>
@@ -26,7 +20,7 @@
 
 {#snippet getnavli(path: string, name: string, index: number)}
 <li class="nav-item">
-	<a href="{path}" class="nav-link" aria-current="page" 
+	<a href="{path}" class="nav-link fs-10" aria-current="page" 
 		class:active={activeIndex === index} 
 		onclick={() => activeIndex = index}>
 		{name}
@@ -38,12 +32,12 @@
 	<div class="row h-100">
 		<!-- 左侧 1/6 -->
 		<div
-			class="col-2 d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary shadow h-100"
+			class="col-2 d-flex flex-column flex-shrink-0 p-2 bg-body-tertiary shadow h-100"
 		>
 			<div
 				class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none"
 			>
-				<i class="bi bi-android2 text-success me-2"></i>
+				<i class="bi bi-android2 text-success me-2 fs-3"></i>
 				<span class="fs-4">Sidebar</span>
 			</div>
 			<hr />
