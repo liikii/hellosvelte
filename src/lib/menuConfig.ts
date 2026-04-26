@@ -38,4 +38,5 @@ export const svelteMenuItems = [
     { path: "/v/binding", name: "Binding" },
     { path: "/v/attach", name: "Attach" },
     { path: "/v/transition", name: "Transition" },
+    { path: "/v/reactivity2", name: "Reactivity2" },
 ];
