@@ -77,7 +77,7 @@
 				<i class="bi bi-android2 text-success me-2 fs-3"></i>
 				<span class="fs-5">{currentTitle}</span>
 			</button>
-			<hr />
+			<hr class="my-3" />
 			<dev class="overflow-y-auto flex-grow-1">
 				<ul class="nav nav-pills flex-column mb-auto w-100">
 					{#each currentMenuItems as item, index}
