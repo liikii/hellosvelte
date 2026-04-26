@@ -34,4 +34,5 @@ export const svelteMenuItems = [
     { path: "/v/effect", name: "Effect" },
     { path: "/v/props", name: "Props" },
     { path: "/v/logic", name: "Logic" },
+    { path: "/v/event", name: "Event" },
 ];
