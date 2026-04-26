@@ -36,4 +36,6 @@ export const svelteMenuItems = [
     { path: "/v/logic", name: "Logic" },
     { path: "/v/event", name: "Event" },
     { path: "/v/binding", name: "Binding" },
+    { path: "/v/attach", name: "Attach" },
+    { path: "/v/transition", name: "Transition" },
 ];

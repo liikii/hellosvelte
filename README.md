@@ -76,6 +76,9 @@ svelte choise
 │  Yes, using TypeScript syntax
 
 npm i lucide-svelte --save-dev
+npm install marked
+npm install -D @types/marked
+npm install tippy.js
 ```
 
 
