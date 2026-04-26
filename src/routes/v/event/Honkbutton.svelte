@@ -2,7 +2,8 @@
 	let props = $props();
 </script>
 
-<button class="btn btn-primary" style="border-radius: 50%;" {...props}>
+<!-- style="border-radius: 50%;" -->
+<button class="btn btn-danger rounded-circle" {...props}>
 	Push
 </button>
 
