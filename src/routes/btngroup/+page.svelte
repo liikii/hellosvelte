@@ -4,8 +4,8 @@
     <div class="btn-group">
         <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Sony</button>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Tablet</a></li>
-            <li><a class="dropdown-item" href="#">Smartphone</a></li>
+            <li><a class="dropdown-item" href="/btngroup">Tablet</a></li>
+            <li><a class="dropdown-item" href="/btngroup">Smartphone</a></li>
         </ul>
     </div>
 </div>
