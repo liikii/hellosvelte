@@ -79,7 +79,6 @@ const old_state = `# 🚀 完整对比（最清晰）
 3. 代码更短、更直观、和普通变量写法一模一样
 `
 
-
     import {SvelteDate} from 'svelte/reactivity'
 	let date = new SvelteDate();
 
