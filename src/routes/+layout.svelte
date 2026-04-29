@@ -10,6 +10,7 @@
 	const titles = ["Bootstrap", "Svelte"];
 	const menu_list = [menuItems, svelteMenuItems];
 	let titleIndex = $state(0);
+	let tipEl: HTMLElement;
 
 	function get_title_index(pathname: string): number {
 		if (pathname === "/v" || pathname.startsWith("/v/")) {
@@ -23,10 +24,23 @@
 		return ａ === ti;
 	}
 
-	onMount(async () => {
-		await import("bootstrap");
+	onMount( () => {
+		 async function init() {
+			const bootstrap = await import("bootstrap");
+			const tip = new bootstrap.Tooltip(tipEl);
+			return () => tip.dispose(); 
+		 }
+		
 		console.log("onMount : bootstrap loaded");
 		titleIndex = get_title_index(page.url.pathname);
+
+		const cleanupPromise = init();
+
+		// 3. 返回一个同步的清理函数
+		return () => {
+			cleanupPromise.then(cleanup => cleanup?.());
+		};
+		
 	});
 
 	// let activeIndex = $state(0);
@@ -115,7 +129,7 @@
 				class="btn d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none border-0 p-0 w-100 text-start"
 			>
 				<i class="bi bi-android2 text-success me-2 fs-3"></i>
-				<span class="fs-5" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="click me">{currentTitle}</span>
+				<span bind:this={tipEl} class="fs-5" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="click me">{currentTitle}</span>
 			</button>
 			<hr class="my-3" />
 			<dev class="overflow-y-auto flex-grow-1">
