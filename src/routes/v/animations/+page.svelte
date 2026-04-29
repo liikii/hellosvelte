@@ -24,7 +24,11 @@
 	}
 </script>
 
-<h3>Deferred transitions</h3>
+<h3>animations transitions</h3>
+<pre>
+	animations
+动画加参数animate:flip={{ duration: 1000 }}
+App.svelte</pre>
 
 <div class="board">
 	<input
