@@ -1,6 +1,6 @@
 
 ### Contenteditable bindings
-app
+app html content binding 
 ```ts
 <script>
 	let html = $state('<p>Write some text!</p>');
@@ -15,7 +15,8 @@ app
 
 
 ### each block binding
-app
+each bind:checked={todo.done}
+app  
 ```ts
 <script>
 	let todos = $state([
@@ -73,6 +74,16 @@ app
 
 
 ### Media elements
+audio video binding
+<audio
+		{src}
+		bind:currentTime={time}
+		bind:duration
+		bind:paused
+		onended={() => {
+			time = 0;
+		}}
+></audio>
  
 app
 ```ts
@@ -293,9 +304,9 @@ export const tracks = [
 ### dimensions
 
 你能给任何 HTML 元素绑定这 4 个尺寸属性：
-bind:clientWidth
+bind:clientWidth 内容区域（content）和内边距（padding），但不包括边框（border）、滚动条（scrollbar）以及外部边距（margin）
 bind:clientHeight
-bind:offsetWidth
+bind:offsetWidth 包括元素的 content、padding、border，以及垂直滚动条（如果存在的话）。它不包括 margin。
 bind:offsetHeight
 Svelte 会自动用 ResizeObserver 监听元素大小变化，实时更新变量。
 
@@ -343,6 +354,7 @@ app
 
 ### binding this
 bind:this = 拿到元素自己
+<canvas  bind:this={canvas} width={32} height={32}></canvas>
 
 app
 ```svelte
@@ -411,6 +423,7 @@ export function paint(context, t) {
 
 ### Component bindings
 用 $bindable + bind: 实现父子组件之间的双向数据同步
+子声明$bindable， 父bind
 
 app.svelte
 
@@ -489,7 +502,7 @@ Keypad.svelte
 ### Binding to component instances
 
 
-bind:this 拿组件 → export 暴露方法 → 父组件直接调用
+调用方 bind:this 拿组件, 赋值到变量 → （类定义方） export 暴露public方法 → 父组件直接调用相关方法
 
 App.svelte
 ```ts
@@ -780,6 +793,7 @@ export function trapFocus(node) {
 ## Advanced transitions
 
 ### Deferred transitions
+延缓动态
 App.svelte
 ```ts
 <script>
@@ -928,6 +942,7 @@ export const [send, receive] = crossfade({
 
 
 ### animations
+动画加参数animate:flip={{ duration: 1000 }}
 App.svelte
 ```ts
 <script>
@@ -1056,7 +1071,7 @@ transition.js
 
 ### Context API
 用 Context API 实现父子 / 祖孙组件跨层级通信，不用层层传 props，setContext 存、getContext 取。
-
+类似全局变量
 App.svelte
 ```ts
 <script>
@@ -1164,7 +1179,6 @@ Square.svelte
 </script>
 
 ```
-
 
 
 
@@ -1340,7 +1354,7 @@ kitten.png
 
 
 ### <svelte:head>
-
+<svelte:head>
 
 app
 ```
@@ -1440,6 +1454,10 @@ FlakyComponent.svelte
 
 
 ## <script module>
+svelte全局性变量
+<script module>
+	let current;
+</script>
 
 ### Sharing code
 App.svelte
@@ -1676,6 +1694,13 @@ export const tracks = [
 
 
 ### export
+svelte export function
+<script module>
+	let current;
+	export function pauseAll() {
+		current?.pause();
+	}
+</script>
 
 App.svelte
 ```ts
@@ -1891,6 +1916,8 @@ tracks.js
 ## sveltekit 
 
 ### slug
+路由动态参数  To create routes with dynamic parameters, use square brackets around a valid variable name. For example, a file like src/routes/blog/[slug]/+page.svelte
+
 ```
 To create routes with dynamic parameters, use square brackets around a valid variable name. For example, a file like src/routes/blog/[slug]/+page.svelte will create a route that matches /blog/one, /blog/two, /blog/three and so on.
 ```
@@ -1907,10 +1934,10 @@ To create routes with dynamic parameters, use square brackets around a valid var
 </div>
 
 
+
 ### pagedata
 
-
-# 终极极简总结
+* 终极极简总结
 **`+page.server.js` 负责在服务器端加载数据
 `load()` 函数返回数据
 `+page.svelte` 通过 `data` 属性接收并展示**
@@ -1918,7 +1945,7 @@ To create routes with dynamic parameters, use square brackets around a valid var
 这就是 SvelteKit **页面数据加载**的完整流程 ✅
 
 代码流程（一眼看懂）
-## 服务器取数据
+* 服务器取数据
 ```js
 // +page.server.js
 export function load({ params }) {
@@ -1927,7 +1954,7 @@ export function load({ params }) {
 }
 ```
 
-### 页面用数据
+* 页面用数据
 ```svelte
 <!-- +page.svelte -->
 <script>
@@ -2011,19 +2038,21 @@ form method="POST" action="?/create">
 
 ### progressive form
 无页面刷新表单
-# 这一节核心总结（1、2、3、4 清晰版）
+* 这一节核心总结（1、2、3、4 清晰版）
 1. **基础原理**：SvelteKit 的 `<form>` **原生就支持无 JS 运行**，表单提交、页面刷新都能正常工作，保证应用健壮。
 2. **渐进增强（+page.svelte）**：有 JS 时，从 `$app/forms` 导入 `enhance`，给表单加 `use:enhance` 指令，实现**无刷新提交**。
 3. **use:enhance 自动做的事**：模拟原生表单行为，但**不整页刷新**；自动更新表单数据、重新执行 `load`、处理跳转/错误。
 4. **优化体验（+page.svelte）**：无刷新后可以搭配 Svelte 过渡动画（`fly`/`slide`），让新增/删除 todo 有流畅动画效果。
 
-###### 一句话极简版
+
+* 一句话极简版
 这一节讲：**给 SvelteKit 表单添加 `use:enhance` 实现渐进增强，让表单在 JS 环境下无刷新提交，并支持流畅动画。**
 
 
 
 ### customizing form
-# 一句话总结
+如何自定义 enhance，让表单可以显示加载中、立即更新界面，不用干等服务器。
+* 一句话总结
 这一节教你用 **`use:enhance` 让 SvelteKit 表单从「生硬刷新」变成「流畅交互」**，实现**加载状态提示**和**乐观 UI**，彻底解决慢网络下的用户体验问题。
 防止反复提交， 删除不等待后端 
 
@@ -2049,7 +2078,7 @@ export function GET() {
 }
 ---
 
-# 二、最直观的区别（一眼看懂）
+* load get post最直观的区别（一眼看懂）
 
 | 特性 | load() | GET() / POST() |
 |------|--------|----------------|
@@ -2067,7 +2096,6 @@ export function GET() {
 
 
 ### prop state 
-
 SvelteKit makes three readonly state objects available via the $app/state module — **page, navigating and updated**. The one you'll use most often is page, which provides information about the current page
 
 
@@ -2129,7 +2157,6 @@ export function load() {
 当 SvelteKit 严重崩溃，连自定义错误页都渲染不了时，用 src/error.html 做终极静态兜底错误页面。
 
 
-
 ### redirect 
 import { redirect } from '@sveltejs/kit';
 
@@ -2175,6 +2202,7 @@ export function load() {
 * 超简记忆
 - `event.fetch`：**带cookie、相对路径、内部直连**
 - `handleFetch`：**拦截服务端 fetch，重定向/修改请求** 它只拦截 「服务端内部发出的 fetch 请求」
+
 
 ### server error hook
 * 超简记忆口诀
@@ -2309,6 +2337,7 @@ server load 返回 A
 universal load 返回 B
 最终页面拿到的只有 B
 你必须手动把需要的值从 data 里返回出去
+
 
 ### parent load
 通用 load（universal） 可以读取 服务器 load（server） 的父数据 ✅

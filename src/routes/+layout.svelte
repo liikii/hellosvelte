@@ -127,9 +127,11 @@
 				onclick={toggleTitle}
 				type="button"
 				class="btn d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none border-0 p-0 w-100 text-start"
+				bind:this={tipEl}
+				data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="click me"
 			>
 				<i class="bi bi-android2 text-success me-2 fs-3"></i>
-				<span bind:this={tipEl} class="fs-5" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="click me">{currentTitle}</span>
+				<span  class="fs-5">{currentTitle}</span>
 			</button>
 			<hr class="my-3" />
 			<dev class="overflow-y-auto flex-grow-1">
