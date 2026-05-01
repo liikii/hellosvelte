@@ -32,6 +32,7 @@
 		"bootstrap": "^5.3.8",
 		"bootstrap-icons": "^1.13.1",
 		"marked": "^18.0.2",
+		"svelte-qrcode": "^1.0.1",
 		"tippy.js": "^6.3.7"
 	}
 }
