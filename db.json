@@ -20,5 +20,11 @@
       { "id": 9, "name": "郑十一", "mail": "zheng11@example.com", "create_time": "2023-01-09", "user_status": 1},
       { "id": 10, "name": "王十二", "mail": "wang12@example.com", "create_time": "2023-01-10", "user_status": 1}
     ]
+  }, 
+  "apiuser": {
+    "user": {
+      "page": 1,
+      "limit": 10
+    }
   }
 }

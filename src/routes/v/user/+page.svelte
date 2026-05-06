@@ -99,10 +99,11 @@
                                     ? 'bg-success'
                                     : 'bg-danger'}"
                             >
-                                {user.user_status}
-                                <!-- {user.user_status === 1 ? "已启用" : "已禁用"} -->
+                                <!-- {user.user_status} -->
+                                {user.user_status === 1 ? "已启用" : "已禁用"}
                             </span>
                         </td>
+                        <td>{new Date(user.create_time).toLocaleDateString()}</td>
                         <td class="text-end">
                             <div class="dropdown">
                                 <button
