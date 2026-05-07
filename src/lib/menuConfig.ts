@@ -83,4 +83,5 @@ export const svelteMenuItems = [
     { path: "/v/variable2", name: "Variable2" },
     { path: "/v/qrcode", name: "QRCode" },
     { path: "/v/user", name: "User" },
+    { path: "/v/mugen", name: "Mugen" },
 ];
