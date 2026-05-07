@@ -2,7 +2,7 @@ export async function load({ fetch, url }) {
     const page = url.searchParams.get('page') || '1';
     const limit = 10;
 
-    const res = await fetch(`http://127.0.0.1:3000/user?page=${page}&limit=${limit}`);
+    const res = await fetch(`/api/user?page=${page}&limit=${limit}`);
     // const res = await fetch(`/api/user?page=${page}&limit=${limit}`);
     const data = await res.json();
 

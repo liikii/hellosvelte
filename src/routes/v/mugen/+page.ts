@@ -5,7 +5,7 @@ export const load: PageLoad = async ({ fetch, url }) => {
     const page = url.searchParams.get('page') || '1';
     
     // 调用后端接口
-    const res = await fetch(`http://127.0.0.1:3000/mugen?page=${page}`);
+    const res = await fetch(`/api/mugen?page=${page}`);
     const data = await res.json();
 
     return {

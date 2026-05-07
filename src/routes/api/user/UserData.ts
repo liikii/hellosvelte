@@ -1,0 +1,75 @@
+export const userData = {
+  "total_user_count": 45,
+  "user_data": [
+    {
+      "id": 1,
+      "name": "张三",
+      "mail": "zhangsan@example.com",
+      "create_time": "2023-01-01",
+      "user_status": 2
+    },
+    {
+      "id": 2,
+      "name": "李四",
+      "mail": "lisi@example.com",
+      "create_time": "2023-01-02",
+      "user_status": 2
+    },
+    {
+      "id": 3,
+      "name": "王五",
+      "mail": "wangwu@example.com",
+      "create_time": "2023-01-03",
+      "user_status": 1
+    },
+    {
+      "id": 4,
+      "name": "赵六",
+      "mail": "zhaoliu@example.com",
+      "create_time": "2023-01-04",
+      "user_status": 1
+    },
+    {
+      "id": 5,
+      "name": "钱七",
+      "mail": "qianqi@example.com",
+      "create_time": "2023-01-05",
+      "user_status": 1
+    },
+    {
+      "id": 6,
+      "name": "孙八",
+      "mail": "sunba@example.com",
+      "create_time": "2023-01-06",
+      "user_status": 1
+    },
+    {
+      "id": 7,
+      "name": "周九",
+      "mail": "zhoujiu@example.com",
+      "create_time": "2023-01-07",
+      "user_status": 1
+    },
+    {
+      "id": 8,
+      "name": "吴十",
+      "mail": "wushi@example.com",
+      "create_time": "2023-01-08",
+      "user_status": 1
+    },
+    {
+      "id": 9,
+      "name": "郑十一",
+      "mail": "zheng11@example.com",
+      "create_time": "2023-01-09",
+      "user_status": 1
+    },
+    {
+      "id": 10,
+      "name": "王十二",
+      "mail": "wang12@example.com",
+      "create_time": "2023-01-10",
+      "user_status": 1
+    }
+  ]
+}
