@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto, invalidateAll } from "$app/navigation";
     import Pagination from "$lib/Pagination.svelte";
+    import { onMount } from "svelte";
 
     let { data } = $props();
 
@@ -43,12 +44,68 @@
     function handlePageChange(page: number) {
         goto(`?page=${page}`);
     }
+
+    // --- 新增用户表单状态 ---
+    let newUser = $state({
+        name: '',
+        mail: '',
+        desc: '',
+        user_status: 1
+    });
+    let modalElement = $state<HTMLElement>();
+    let modalInstance: any;
+
+    onMount( () => {
+		 async function init() {
+			const bootstrap = await import("bootstrap");
+			if (modalElement) modalInstance = new bootstrap.Modal(modalElement);
+		 }
+		init();
+		// // 3. 返回一个同步的清理函数
+		// return () => {
+		// 	cleanupPromise.then(cleanup => cleanup?.());
+		// };
+		
+	});
+
+    async function saveUser() {
+        try {
+            const res = await fetch('http://127.0.0.1:3000/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            });
+
+            if (res.ok) {
+                modalInstance.hide(); // 关闭弹窗
+                newUser = { name: '', mail: '', desc: '', user_status: 1 }; // 重置表单
+                invalidateAll(); // 刷新列表
+            } else {
+                const err = await res.json();
+                alert("保存失败: " + (err.message || "未知错误"));
+            }
+        } catch (e) {
+            alert("提交请求失败");
+        }
+    }
+    // --- 结束 ---
+    
+
 </script>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-dark">用户管理</h2>
         <span class="badge bg-secondary px-3 py-2">总计: {data.total}</span>
+    </div> -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">用户管理</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary d-flex align-items-center" onclick={() => modalInstance.show()}>
+                <span class="me-1">+</span> 新增用户
+            </button>
+            <span class="badge bg-secondary d-flex align-items-center px-3">总计: {data.total}</span>
+        </div>
     </div>
 
     <div class="table-responsive shadow-sm rounded-3">
@@ -115,7 +172,49 @@
     />
 </div>
 
+
+<!-- 新增用户模态框 -->
+<div class="modal fade" bind:this={modalElement} tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">新增用户信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" title="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit={(e) => { e.preventDefault(); saveUser(); }}>
+                    <div class="mb-3">
+                        <label for="userNameInput" class="form-label small fw-bold">用户名</label>
+                        <input id="userNameInput" type="text" class="form-control" bind:value={newUser.name} placeholder="输入用户名" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="emailInput" class="form-label small fw-bold">邮箱</label>
+                        <input id="emailInput" type="email" class="form-control" bind:value={newUser.mail} placeholder="example@mail.com" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="descInput" class="form-label small fw-bold">用户描述</label>
+                        <textarea id="descInput" class="form-control" rows="3" bind:value={newUser.desc} placeholder="简单描述一下用户..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusInput" class="form-label small fw-bold">初始状态</label>
+                        <select id="statusInput" class="form-select" bind:value={newUser.user_status}>
+                            <option value={1}>启用</option>
+                            <option value={2}>禁用</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer px-0 pb-0 border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary px-4">保存用户</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <style>
     .table { font-size: 0.95rem; }
     .table-hover tbody tr:hover { background-color: rgba(0,0,0,0.02); }
 </style>
+
