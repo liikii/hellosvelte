@@ -1,6 +1,8 @@
 // src/routes/api/super_suite/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { superSuiteData } from './SuperSuiteData';
+
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
@@ -36,8 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
 };
 
 // 同时也提供一个简单的 GET 接口用于测试
-export const GET: RequestHandler = async () => {
-    return json({
-        message: "Super Suite API is working. Use POST to create."
-    });
-};
+export function GET() {	
+    let user_data = superSuiteData;
+    return json(user_data);
+}

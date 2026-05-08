@@ -84,5 +84,6 @@ export const svelteMenuItems = [
     { path: "/v/qrcode", name: "QRCode" },
     { path: "/v/user", name: "User" },
     { path: "/v/mugen", name: "Mugen" },
-    { path: "/v/create_super_suite", name: "Super Suite" },
+    { path: "/v/create_super_suite", name: "create_super" },
+    { path: "/v/supersuite", name: "Super Suite" },
 ];
