@@ -1,17 +1,13 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { CASE_STATUS, TASK_STATUS } from './status_config';
     import Pagination from "$lib/Pagination.svelte";
 
-    // Destructure props explicitly for better Svelte 5 reactivity tracking
-    let { task, onBack } = $props<{ 
-        task: any, 
-        onBack: () => void 
-    }>();
-
-    // Ensure taskId is stable for reactivity
+    // 接收参数
+    let { task, onBack } = $props<{ task: any, onBack: () => void }>();
     let taskId = $derived(task?.id);
 
+    // 数据状态
     let details = $state<any[]>([]);
     let loading = $state(true);
     let order = $state('desc');
@@ -20,12 +16,19 @@
     let totalCount = $state(0);
     const perPage = 20;
 
+    // 日志抽屉状态
+    let selectedLog = $state<any>(null);
+    let logDrawerElement = $state<HTMLElement>();
+    let logDrawerInstance: any;
+
+    // 定时器引用
+    let refreshInterval: any;
+
+    // 1. 获取全量分页数据
     async function loadDetail() {
         if (!taskId) return;
-        
         loading = true;
         try {
-            // Added error handling and manual cleanup of potential undefined params
             const query = new URLSearchParams({
                 page: currentPage.toString(),
                 per_page: perPage.toString(),
@@ -35,47 +38,72 @@
                 query.set('min_status', statusMin);
                 query.set('max_status', statusMin);
             }
-
             const res = await fetch(`/api/test_task/${taskId}?${query.toString()}`);
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            
             const result = await res.json();
             details = result.data || [];
             totalCount = result.total_count || 0;
         } catch (err) {
-            console.error("Failed to load details:", err);
-            details = [];
+            console.error("加载详情失败:", err);
         } finally {
             loading = false;
         }
     }
 
-    // $effect automatically re-runs whenever taskId, currentPage, order, or statusMin changes
-    $effect(() => {
-        if (taskId) {
-            loadDetail();
+    // 2. 局部轮询函数：只更新当前页非终态的 Case
+    async function pollStatus() {
+        // 如果任务整体已结束 (2:全成功, 3:有失败, 4:启动失败)，停止轮询
+        if ([2, 3, 4].includes(task.status_code)) return;
+
+        // 找出当前页中状态码为 0(not started) 或 1(start) 的 case_id
+        const activeIds = details
+            .filter(item => [0, 1].includes(item.status_code))
+            .map(item => item.case_id);
+
+        if (activeIds.length === 0) return;
+
+        try {
+            const res = await fetch('/api/task_case_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task_id: taskId, case_ids: activeIds })
+            });
+            const result = await res.json();
+            const updates = result.data; // 格式: { "1001": {...} }
+
+            // 响应式更新数组中的特定对象
+            details = details.map(item => {
+                if (updates[item.case_id]) {
+                    return { ...item, ...updates[item.case_id] };
+                }
+                return item;
+            });
+        } catch (err) {
+            console.warn("局部刷新失败:", err);
         }
+    }
+
+    // 监听分页/筛选变化
+    $effect(() => {
+        if (taskId) loadDetail();
+    });
+
+    onMount(async () => {
+        // 初始化 Bootstrap 抽屉
+        const bootstrap = await import("bootstrap");
+        if (logDrawerElement) logDrawerInstance = new bootstrap.Offcanvas(logDrawerElement);
+
+        // 开启 30s 轮询
+        refreshInterval = setInterval(pollStatus, 30000);
+    });
+
+    onDestroy(() => {
+        if (refreshInterval) clearInterval(refreshInterval);
     });
 
     function handleFilterChange() {
-        currentPage = 1; // Reset to page 1 on filter/sort change
+        currentPage = 1;
+        loadDetail();
     }
-
-    let selectedLog = $state<any>(null); // 存储当前点击的日志对象
-    let logDrawerElement = $state<HTMLElement>();
-    let logDrawerInstance: any;
-    
-    onMount( () => {
-        async function init() {
-            const bootstrap = await import("bootstrap");
-            if (logDrawerElement) logDrawerInstance = new bootstrap.Offcanvas(logDrawerElement);
-            // const tip = new bootstrap.Tooltip(tipEl);
-            // return () => tip.dispose(); 
-        }
-
-        init();
-		
-	});
 
     function openLogDrawer(item: any) {
         selectedLog = item;
@@ -87,48 +115,56 @@
         navigator.clipboard.writeText(selectedLog.status_desc);
         alert("日志已复制到剪贴板");
     }
-
 </script>
 
 <div class="bg-light p-3 min-vh-100">
-    <div class="d-flex align-items-center mb-3">
-        <button class="btn btn-white border shadow-sm btn-sm me-3" onclick={onBack}>
-            <i class="bi bi-arrow-left me-1"></i> 返回列表
-        </button>
-        <h4 class="mb-0 fw-bold">执行报告 <span class="text-muted small">#{taskId || '---'}</span></h4>
+    <!-- 头部导航 -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-white border shadow-sm btn-sm me-3" onclick={onBack}>
+                <i class="bi bi-arrow-left"></i> 返回列表
+            </button>
+            <h4 class="mb-0 fw-bold text-dark">执行报告 <span class="text-muted small">#{taskId}</span></h4>
+        </div>
+        {#if ![2, 3, 4].includes(task.status_code)}
+            <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
+                <span class="spinner-grow spinner-grow-sm me-2" role="status"></span>
+                正在实时同步状态 (30s)
+            </div>
+        {/if}
     </div>
 
-    <!-- Parent Task Summary Card -->
-    {#if task}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body bg-white rounded-3 py-3">
-                <div class="row align-items-center">
-                    <div class="col-md-4 border-end">
-                        <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">Super Suite</span>
-                        <h5 class="fw-bold text-primary mb-0">{task.super_suite_name}</h5>
-                    </div>
-                    <div class="col-md-3 border-end">
-                        <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">测试主机</span>
-                        <div class="fw-semibold text-dark"><i class="bi bi-pc-display me-2"></i>{task.test_host}</div>
-                        <div class="text-muted small">{task.test_host_usr}@{task.test_host}</div>
-                    </div>
-                    <div class="col-md-3 border-end">
-                        <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">整体状态</span>
-                        <!-- {@const st = TASK_STATUS[task.status_code]} -->
-                            <div class="{TASK_STATUS[task.status_code].color} fw-bold">
-                                <i class="bi {TASK_STATUS[task.status_code].icon} me-1"></i> {TASK_STATUS[task.status_code].label}
-                            </div>
-                    </div>
-                    <div class="col-md-2 text-center">
-                        <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">执行人</span>
-                        <span class="badge bg-light text-dark border fw-normal">{task.user_name}</span>
-                    </div>
+    <!-- 任务概览卡片 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-white rounded-3 py-3">
+            <div class="row align-items-center">
+                <div class="col-md-4 border-end">
+                    <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">Super Suite</span>
+                    <h5 class="fw-bold text-primary mb-0">{task.super_suite_name}</h5>
+                </div>
+                <div class="col-md-3 border-end">
+                    <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">测试主机</span>
+                    <div class="fw-semibold text-dark">{task.test_host}</div>
+                    <div class="text-muted small">{task.test_host_usr}@{task.test_host}</div>
+                </div>
+                <div class="col-md-3 border-end">
+                    <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">任务状态</span>
+                    {#if TASK_STATUS[task.status_code]}
+                        <div class="{TASK_STATUS[task.status_code].color} fw-bold">
+                            <i class="bi {TASK_STATUS[task.status_code].icon} me-1"></i>
+                            {TASK_STATUS[task.status_code].label}
+                        </div>
+                    {/if}
+                </div>
+                <div class="col-md-2 text-center">
+                    <span class="text-uppercase text-muted extra-small fw-bold d-block mb-1">执行人</span>
+                    <span class="badge bg-light text-dark border fw-normal">{task.user_name}</span>
                 </div>
             </div>
         </div>
-    {/if}
+    </div>
 
-    <!-- Execution Logs List -->
+    <!-- 用例执行详情 -->
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-primary"></i>用例执行明细</h6>
@@ -179,36 +215,21 @@
                                     </td>
                                     <td class="small text-muted">
                                         <div class="text-nowrap"><i class="bi bi-clock me-1"></i> {new Date(item.start_time).toLocaleTimeString()}</div>
-                                        <div class="text-nowrap text-opacity-50 ms-3">↓ {new Date(item.end_time).toLocaleTimeString()}</div>
+                                        <div class="text-nowrap text-opacity-50"><i class="bi bi-arrow-right-short"></i> {item.end_time ? new Date(item.end_time).toLocaleTimeString() : '--:--'}</div>
                                     </td>
-                                    <!-- <td class="pe-4 small text-muted">
-                                        <div class="text-truncate" style="max-width: 250px;" title={item.status_desc}>
-                                            {item.status_desc}
-                                        </div>
-                                    </td> -->
-                                    <!-- 表格中的结果描述列 -->
-                                    <td class="pe-4 small text-muted">
+                                    <td class="pe-4">
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <!-- 预览前 30 个字 -->
-                                            <span class="text-truncate d-inline-block" style="max-width: 200px;">
-                                                {item.status_desc.substring(0, 30)}{item.status_desc.length > 30 ? '...' : ''}
+                                            <span class="text-truncate small text-muted" style="max-width: 200px;" title={item.status_desc}>
+                                                {item.status_desc.substring(0, 40)}{item.status_desc.length > 40 ? '...' : ''}
                                             </span>
-                                            
-                                            <!-- 查看全文按钮 -->
-                                            <button 
-                                                class="btn btn-sm btn-link text-primary p-0 ms-2 text-decoration-none"
-                                                onclick={() => openLogDrawer(item)}
-                                                title="查看完整日志"
-                                            >
-                                                <i class="bi bi-terminal-fill me-1"></i>明细
+                                            <button class="btn btn-sm btn-link text-primary p-0 text-decoration-none" onclick={() => openLogDrawer(item)}>
+                                                详情
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             {:else}
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">该任务下暂无执行记录</td>
-                                </tr>
+                                <tr><td colspan="5" class="text-center py-5 text-muted">该任务下暂无执行记录</td></tr>
                             {/each}
                         </tbody>
                     </table>
@@ -229,45 +250,40 @@
     </div>
 </div>
 
-<!-- 日志查看抽屉 -->
+<!-- 日志详情抽屉 -->
 <div class="offcanvas offcanvas-end w-50" bind:this={logDrawerElement} tabindex="-1">
     <div class="offcanvas-header bg-dark text-white">
         <h5 class="offcanvas-title fw-bold">
-            <i class="bi bi-terminal me-2"></i>日志详情 
+            <i class="bi bi-terminal me-2"></i>日志明细
             <small class="text-white-50 ms-2 fw-normal">#{selectedLog?.case_id}</small>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" title="关闭"></button>
     </div>
     <div class="offcanvas-body bg-dark p-0 overflow-hidden d-flex flex-column">
-        <!-- 工具栏 -->
         <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-secondary bg-opacity-25 border-bottom border-secondary">
-            <span class="small text-white-50">{selectedLog?.case_name}</span>
+            <span class="small text-white-50 text-truncate me-3">{selectedLog?.case_name}</span>
             <button class="btn btn-sm btn-outline-light border-0" onclick={copyLog}>
                 <i class="bi bi-clipboard me-1"></i>复制全文
             </button>
         </div>
-        
-        <!-- 日志内容区 -->
-        <pre class="m-0 p-3 text-info flex-grow-1 overflow-auto font-monospace small custom-log-viewer" style="line-height: 1.6;">
-            {selectedLog?.status_desc}
-        </pre>
+        <pre class="m-0 p-3 flex-grow-1 overflow-auto font-monospace small custom-log-viewer">{selectedLog?.status_desc}</pre>
     </div>
 </div>
 
 <style>
-    /* 让日志看起来像终端 */
+    .extra-small { font-size: 0.7rem; }
+    .btn-white { background: white; }
+    th { font-size: 0.75rem; text-transform: uppercase; color: #888; border-top: none !important; }
+    
     .custom-log-viewer {
         background-color: #1e1e1e;
         white-space: pre-wrap;
         word-break: break-all;
         color: #dcdcdc !important;
+        line-height: 1.6;
     }
-    
+
+    /* 滚动条美化 */
     .custom-log-viewer::-webkit-scrollbar { width: 8px; }
     .custom-log-viewer::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-
-    .extra-small { font-size: 0.7rem; }
-    .btn-white { background: white; }
-    th { font-size: 0.75rem; text-transform: uppercase; color: #888; border-top: none !important; }
-    .table-hover tbody tr:hover { background-color: rgba(0, 123, 255, 0.02); }
 </style>
