@@ -2,23 +2,27 @@
   let { suiteData } = $props();
 </script>
 
-<div class="accordion shadow-sm" id="mugenAccordion">
+<div class="accordion border-0" id="mugenAccordion">
   {#each suiteData as suite, i}
-    <div class="accordion-item border-0 mb-2 overflow-hidden rounded-3">
+    <!-- 增加 mb-3 间距，去掉默认边框 -->
+    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
       <h2 class="accordion-header">
         <button
-          class="accordion-button {i !== 0 ? 'collapsed' : ''} bg-white shadow-none"
+          class="accordion-button {i !== 0 ? 'collapsed' : ''} bg-white py-3 px-4"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#collapse{i}"
         >
           <div class="d-flex w-100 justify-content-between align-items-center me-3">
-            <span class="fw-semibold text-dark">
-              <i class="bi bi-folder2-open me-2 text-primary"></i>{suite.suite_name}
+            <span class="fs-5 fw-bold text-dark">
+                <i class="bi bi-collection-play me-2 text-primary"></i>{suite.suite_name}
             </span>
-            <span class="badge rounded-pill bg-blue-light text-primary border border-primary border-opacity-25">
-              {suite.suite_cases.length} Cases
-            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small font-monospace d-none d-md-inline">{suite.suite_id}</span>
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3">
+                  {suite.suite_cases.length} Cases
+                </span>
+            </div>
           </div>
         </button>
       </h2>
@@ -27,13 +31,16 @@
         class="accordion-collapse collapse {i === 0 ? 'show' : ''}"
         data-bs-parent="#mugenAccordion"
       >
-        <div class="accordion-body bg-light bg-opacity-50">
-          <div class="row g-2">
+        <!-- 背景改为极浅灰，增加内边距 -->
+        <div class="accordion-body bg-light bg-opacity-25 px-4 py-4 border-top">
+          <div class="row g-3">
             {#each suite.suite_cases as test_case}
               <div class="col-auto">
-                <div class="case-card py-1 px-3 bg-white border rounded-pill shadow-sm" title={test_case.case_id}>
-                  <small class="text-secondary font-monospace" style="font-size: 0.75rem;">{test_case.case_id.split('_').pop()}</small>
-                  <span class="ms-1 text-dark">{test_case.case_name}</span>
+                <div class="case-tile py-2 px-3 bg-white border rounded-2 shadow-sm" title={test_case.case_id}>
+                  <div class="d-flex align-items-center">
+                    <div class="case-num-badge me-2">{test_case.case_id.split('_').pop()}</div>
+                    <span class="text-dark fw-medium">{test_case.case_name}</span>
+                  </div>
                 </div>
               </div>
             {/each}
@@ -45,38 +52,40 @@
 </div>
 
 <style>
-  /* 自定义样式美化 */
-  .bg-blue-light {
-    background-color: #e7f1ff;
-  }
-
-  .accordion-item {
-    border: 1px solid rgba(0,0,0,0.05) !important;
-  }
-
+  /* 标题按钮激活状态美化 */
   .accordion-button:not(.collapsed) {
-    color: var(--bs-primary);
-    background-color: #fff;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: #fff !important;
+    color: var(--bs-primary) !important;
+    box-shadow: none !important;
   }
 
-  .case-card {
-    transition: all 0.2s ease;
-    cursor: default;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-  }
-
-  .case-card:hover {
-    border-color: var(--bs-primary) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-  }
-
-  /* 隐藏手风琴默认的蓝圈焦点 */
   .accordion-button:focus {
-    box-shadow: none;
-    border-color: rgba(0,0,0,0.125);
+    box-shadow: none !important;
+    border-color: rgba(0,0,0,.1) !important;
+  }
+
+  /* Case 磁贴美化：向 Test Task 的风格靠拢 */
+  .case-tile {
+    transition: all 0.2s ease;
+    min-width: 150px;
+    border-color: #eee !important;
+  }
+
+  .case-tile:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: #f0f7ff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1) !important;
+  }
+
+  /* 用例编号小标签 */
+  .case-num-badge {
+    background: #f8f9fa;
+    color: #6c757d;
+    font-family: var(--bs-font-monospace);
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #eee;
   }
 </style>

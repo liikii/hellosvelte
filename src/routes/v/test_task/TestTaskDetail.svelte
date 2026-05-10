@@ -60,6 +60,34 @@
     function handleFilterChange() {
         currentPage = 1; // Reset to page 1 on filter/sort change
     }
+
+    let selectedLog = $state<any>(null); // 存储当前点击的日志对象
+    let logDrawerElement = $state<HTMLElement>();
+    let logDrawerInstance: any;
+    
+    onMount( () => {
+        async function init() {
+            const bootstrap = await import("bootstrap");
+            if (logDrawerElement) logDrawerInstance = new bootstrap.Offcanvas(logDrawerElement);
+            // const tip = new bootstrap.Tooltip(tipEl);
+            // return () => tip.dispose(); 
+        }
+
+        init();
+		
+	});
+
+    function openLogDrawer(item: any) {
+        selectedLog = item;
+        logDrawerInstance.show();
+    }
+
+    function copyLog() {
+        if (!selectedLog) return;
+        navigator.clipboard.writeText(selectedLog.status_desc);
+        alert("日志已复制到剪贴板");
+    }
+
 </script>
 
 <div class="bg-light p-3 min-vh-100">
@@ -153,9 +181,27 @@
                                         <div class="text-nowrap"><i class="bi bi-clock me-1"></i> {new Date(item.start_time).toLocaleTimeString()}</div>
                                         <div class="text-nowrap text-opacity-50 ms-3">↓ {new Date(item.end_time).toLocaleTimeString()}</div>
                                     </td>
-                                    <td class="pe-4 small text-muted">
+                                    <!-- <td class="pe-4 small text-muted">
                                         <div class="text-truncate" style="max-width: 250px;" title={item.status_desc}>
                                             {item.status_desc}
+                                        </div>
+                                    </td> -->
+                                    <!-- 表格中的结果描述列 -->
+                                    <td class="pe-4 small text-muted">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <!-- 预览前 30 个字 -->
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                                                {item.status_desc.substring(0, 30)}{item.status_desc.length > 30 ? '...' : ''}
+                                            </span>
+                                            
+                                            <!-- 查看全文按钮 -->
+                                            <button 
+                                                class="btn btn-sm btn-link text-primary p-0 ms-2 text-decoration-none"
+                                                onclick={() => openLogDrawer(item)}
+                                                title="查看完整日志"
+                                            >
+                                                <i class="bi bi-terminal-fill me-1"></i>明细
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -183,7 +229,43 @@
     </div>
 </div>
 
+<!-- 日志查看抽屉 -->
+<div class="offcanvas offcanvas-end w-50" bind:this={logDrawerElement} tabindex="-1">
+    <div class="offcanvas-header bg-dark text-white">
+        <h5 class="offcanvas-title fw-bold">
+            <i class="bi bi-terminal me-2"></i>日志详情 
+            <small class="text-white-50 ms-2 fw-normal">#{selectedLog?.case_id}</small>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" title="关闭"></button>
+    </div>
+    <div class="offcanvas-body bg-dark p-0 overflow-hidden d-flex flex-column">
+        <!-- 工具栏 -->
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-secondary bg-opacity-25 border-bottom border-secondary">
+            <span class="small text-white-50">{selectedLog?.case_name}</span>
+            <button class="btn btn-sm btn-outline-light border-0" onclick={copyLog}>
+                <i class="bi bi-clipboard me-1"></i>复制全文
+            </button>
+        </div>
+        
+        <!-- 日志内容区 -->
+        <pre class="m-0 p-3 text-info flex-grow-1 overflow-auto font-monospace small custom-log-viewer" style="line-height: 1.6;">
+            {selectedLog?.status_desc}
+        </pre>
+    </div>
+</div>
+
 <style>
+    /* 让日志看起来像终端 */
+    .custom-log-viewer {
+        background-color: #1e1e1e;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #dcdcdc !important;
+    }
+    
+    .custom-log-viewer::-webkit-scrollbar { width: 8px; }
+    .custom-log-viewer::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
     .extra-small { font-size: 0.7rem; }
     .btn-white { background: white; }
     th { font-size: 0.75rem; text-transform: uppercase; color: #888; border-top: none !important; }

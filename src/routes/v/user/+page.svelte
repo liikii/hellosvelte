@@ -92,85 +92,100 @@
     
 
 </script>
-
-<div class="container mt-4">
-    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">用户管理</h2>
-        <span class="badge bg-secondary px-3 py-2">总计: {data.total}</span>
-    </div> -->
+<div class="container-fluid mt-4 px-4"> <!-- 改为全屏流布局 -->
+    
+    <!-- 顶部标题与操作栏：采用任务页的对齐风格 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">用户管理</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary d-flex align-items-center" onclick={() => modalInstance.show()}>
-                <span class="me-1">+</span> 新增用户
+        <div>
+            <h2 class="fw-bold text-dark mb-1">用户管理</h2>
+            <p class="text-muted small mb-0">管理系统访问权限与用户信息</p>
+        </div>
+        <div class="d-flex gap-3">
+            <button class="btn btn-primary d-flex align-items-center px-3 shadow-sm rounded-pill" onclick={() => modalInstance.show()}>
+                <i class="bi bi-person-plus-fill me-2"></i> 新增用户
             </button>
-            <span class="badge bg-secondary d-flex align-items-center px-3">总计: {data.total}</span>
+            <div class="badge bg-white text-dark border d-flex align-items-center px-3 shadow-sm rounded-pill">
+                <span class="text-muted me-1">总计:</span> <strong>{data.total}</strong>
+            </div>
         </div>
     </div>
 
-    <div class="table-responsive shadow-sm rounded-3">
-        <table class="table table-hover align-middle bg-white mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-3">用户名</th>
-                    <th>邮箱</th>
-                    <th>描述</th>
-                    <th>状态</th>
-                    <th>创建时间</th>
-                    <th class="text-end pe-3">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {#each users as user}
-                    <tr>
-                        <td class="ps-3"><strong>{user.name}</strong></td>
-                        <td>{user.mail}</td>
-                        <td class="text-muted small">{user.desc || '-'}</td>
-                        <td>
-                            <span class="badge {user.user_status === 1 ? 'bg-success' : 'bg-danger'} bg-opacity-75">
-                                {user.user_status === 1 ? "已启用" : "已禁用"}
-                            </span>
-                        </td>
-                        <td>{new Date(user.create_time).toLocaleDateString()}</td>
-                        <td class="text-end pe-3">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                    管理
-                                </button>
-                                <ul class="dropdown-menu shadow">
-                                    <li>
-                                        <button class="dropdown-item" disabled={user.user_status === 1} onclick={() => handleAction(user, "enable")}>
-                                            <i class="bi bi-check-circle me-2"></i>启用
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item" disabled={user.user_status === 2} onclick={() => handleAction(user, "disable")}>
-                                            <i class="bi bi-slash-circle me-2"></i>禁用
-                                        </button>
-                                    </li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li>
-                                        <button class="dropdown-item text-danger" onclick={() => handleAction(user, "delete")}>
-                                            <i class="bi bi-trash me-2"></i>删除用户
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
+    <!-- 表格卡片：增加 shadow 和 border 细节 -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-white mb-0">
+                <thead class="table-light border-bottom">
+                    <tr class="text-uppercase small fw-bold text-secondary">
+                        <th class="ps-4 py-3">用户名</th>
+                        <th class="py-3">邮箱</th>
+                        <th class="py-3">描述</th>
+                        <th class="py-3">状态</th>
+                        <th class="py-3">创建时间</th>
+                        <th class="text-end pe-4 py-3">操作</th>
                     </tr>
-                {/each}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {#each users as user}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">{user.name.charAt(0)}</div>
+                                    <strong class="text-dark">{user.name}</strong>
+                                </div>
+                            </td>
+                            <td><span class="text-secondary">{user.mail}</span></td>
+                            <td><span class="text-muted smaller">{user.desc || '-'}</span></td>
+                            <td>
+                                <span class="badge rounded-pill {user.user_status === 1 ? 'bg-success' : 'bg-danger'} bg-opacity-10 {user.user_status === 1 ? 'text-success' : 'text-danger'} border {user.user_status === 1 ? 'border-success' : 'border-danger'} border-opacity-25 px-3">
+                                    {user.user_status === 1 ? "已启用" : "已禁用"}
+                                </span>
+                            </td>
+                            <td class="text-muted smaller">{new Date(user.create_time).toLocaleDateString()}</td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown">
+                                        管理
+                                    </button>
+                                    <ul class="dropdown-menu shadow border-0">
+                                        <li>
+                                            <button class="dropdown-item py-2" disabled={user.user_status === 1} onclick={() => handleAction(user, "enable")}>
+                                                <i class="bi bi-check-circle me-2 text-success"></i>启用账号
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item py-2" disabled={user.user_status === 2} onclick={() => handleAction(user, "disable")}>
+                                                <i class="bi bi-dash-circle me-2 text-warning"></i>禁用账号
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider opacity-50"></li>
+                                        <li>
+                                            <button class="dropdown-item py-2 text-danger" onclick={() => handleAction(user, "delete")}>
+                                                <i class="bi bi-trash3 me-2"></i>删除用户
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- 5. 使用通用分页组件 -->
-    <Pagination 
-        total={data.total} 
-        limit={data.limit} 
-        current={currentPage} 
-        onPageChange={handlePageChange} 
-    />
+    <!-- 分页控件 -->
+    <div class="d-flex justify-content-center mt-4">
+        <Pagination 
+            total={data.total} 
+            limit={data.limit} 
+            current={currentPage} 
+            onPageChange={handlePageChange} 
+        />
+    </div>
 </div>
+
+<!-- Modal 部分保持之前的 a11y 修正即可 ... -->
+
 
 
 <!-- 新增用户模态框 -->
