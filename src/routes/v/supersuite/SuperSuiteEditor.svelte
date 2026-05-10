@@ -167,16 +167,31 @@
                                     {#each suite.suite_cases as c}
                                         <span class="badge bg-primary d-flex align-items-center gap-1 py-2 px-3">
                                             {c.case_name}
-                                            <i class="bi bi-x-circle-fill cp" onclick={() => removeCase(suite.suite_id, c.case_id)}></i>
+                                            <!-- <i class="bi bi-x-circle-fill cp" onclick={() => removeCase(suite.suite_id, c.case_id)}></i> -->
+                                            <button 
+                                                type="button" 
+                                                class="btn p-0 border-0 lh-1 text-white opacity-75" 
+                                                onclick={() => removeCase(suite.suite_id, c.case_id)}
+                                                aria-label="移除用例"
+                                            >
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
                                         </span>
                                     {/each}
 
                                     <!-- 未选 Case (计算得出) -->
                                     {#if fullCasesMap[suite.suite_id]}
                                         {#each fullCasesMap[suite.suite_id].filter(fc => !suite.suite_cases.some((sc: any) => sc.case_id === fc.case_id)) as fc}
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center gap-1 py-2 px-3 cp-add" onclick={() => addCase(suite.suite_id, fc)}>
+                                            <!-- <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center gap-1 py-2 px-3 cp-add" onclick={() => addCase(suite.suite_id, fc)}>
                                                 <i class="bi bi-plus-lg"></i> {fc.case_name}
-                                            </span>
+                                            </span> -->
+                                            <button 
+                                                type="button" 
+                                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center gap-1 py-2 px-3 cp-add" 
+                                                onclick={() => addCase(suite.suite_id, fc)}
+                                            >
+                                                <i class="bi bi-plus-lg"></i> {fc.case_name}
+                                            </button>
                                         {/each}
                                     {/if}
                                 </div>
@@ -204,8 +219,8 @@
     .btn-tile-light:hover { background: #f0f7ff; border-color: #0d6efd; color: #0d6efd; }
 
     /* Case 交互样式 */
-    .cp { cursor: pointer; opacity: 0.7; }
-    .cp:hover { opacity: 1; }
+    /* .cp { cursor: pointer; opacity: 0.7; }
+    .cp:hover { opacity: 1; } */
     
     .cp-add { cursor: pointer; transition: 0.2s; }
     .cp-add:hover { background-color: #e9ecef !important; color: #000 !important; }
