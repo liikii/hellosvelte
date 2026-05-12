@@ -111,10 +111,13 @@
     </div>
 
     <!-- 表格卡片：增加 shadow 和 border 细节 -->
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <!-- <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle bg-white mb-0">
-                <thead class="table-light border-bottom">
+            <table class="table table-hover align-middle bg-white mb-0"> -->
+<div class="card border-0 shadow-sm rounded-3" style="min-height: 350px;">
+    <div class="table-responsive" style="overflow: visible;"> 
+        <table class="table table-hover align-middle bg-white mb-0">
+            <thead class="table-light border-bottom">
                     <tr class="text-uppercase small fw-bold text-secondary">
                         <th class="ps-4 py-3">用户名</th>
                         <th class="py-3">邮箱</th>
