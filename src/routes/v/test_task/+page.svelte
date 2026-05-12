@@ -6,6 +6,7 @@
     import { TASK_STATUS } from './status_config';
     import TestTaskCreate from './TestTaskCreate.svelte';
     import TestTaskDetail from './TestTaskDetail.svelte';
+    import { onMount } from 'svelte';
 
     let { data } = $props();
 
@@ -20,6 +21,50 @@
     let orderTime = $state(page.url.searchParams.get('order_create_time') || 'desc');
 
     let tasks = $derived(data.tasks);
+    
+    // 1. 定义本地状态，初始可以为空数组
+    let localTasks = $state<any[]>([]);
+
+    // 2. 核心：使用 $effect 监听 data.tasks 的变化
+    // 每当 data.tasks 引用改变（例如翻页、重新查询），就同步给 localTasks
+    $effect(() => {
+        localTasks = data.tasks;
+    });
+
+     // --- 定时更新状态功能 ---
+    async function updateTaskStatuses() {
+        if (viewMode !== 'list' || !localTasks || localTasks.length === 0) return;
+
+        const ids = localTasks.map((t: any) => t.id);
+        try {
+            const response = await fetch('/api/task_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ids)
+            });
+            
+            if (response.ok) {
+                const statusMap = await response.json();
+                
+                // 3. 直接修改 localTasks，触发 UI 更新
+                localTasks = localTasks.map((task: any) => {
+                    if (statusMap[task.id] !== undefined && statusMap[task.id] !== task.status_code) {
+                        return { ...task, status_code: statusMap[task.id] };
+                    }
+                    return task;
+                });
+            }
+        } catch (error) {
+            console.error("Failed to update task statuses:", error);
+        }
+    }
+
+    onMount(() => {
+        const interval = setInterval(updateTaskStatuses, 10000); // 每10秒更新一次
+        return () => clearInterval(interval); // 组件销毁时清除定时器
+    });
+    // -----------------------
+
 
     function applyFilter() {
         const url = new URL(window.location.origin + window.location.pathname);
@@ -108,7 +153,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#each tasks as task}
+                            {#each localTasks as task}
                                 <tr>
                                     <td class="ps-4 font-monospace small">#{task.id}</td>
                                     <td class="fw-bold">{task.super_suite_name}</td>
@@ -117,7 +162,7 @@
                                         <div class="text-muted" style="font-size: 0.7rem;">User: {task.test_host_usr}</div>
                                     </td>
                                     <td>{task.user_name}</td>
-                                    <td>
+                                    <!-- <td>
                                         {#if TASK_STATUS[task.status_code]}
                                             <span class={TASK_STATUS[task.status_code].color}>
                                                 <i class="bi {TASK_STATUS[task.status_code].icon} me-1"></i>
@@ -129,7 +174,24 @@
                                                 未知 ({task.status_code})
                                             </span>
                                         {/if}
-                                    </td>
+                                    </td> -->
+                                    <td class="status-cell">
+                                    {#if TASK_STATUS[task.status_code]}
+                                        <!-- 如果状态是“运行中”或“排队中”，添加呼吸灯效果 -->
+                                        {@const isRunning = task.status_code === 1 } <!-- 这里的ID根据你 status_config 的实际值调整 -->
+                                        
+                                        <span class="{TASK_STATUS[task.status_code].color} {isRunning ? 'status-updating' : ''}">
+                                            <i class="bi {TASK_STATUS[task.status_code].icon} me-1 {isRunning ? 'animate-spin' : ''}"></i>
+                                            {TASK_STATUS[task.status_code].label}
+                                        </span>
+                                    {:else}
+                                        <span class="text-muted">
+                                            <i class="bi bi-question-circle me-1"></i>
+                                            未知 ({task.status_code})
+                                        </span>
+                                    {/if}
+                                </td>
+
                                     <td class="text-muted small">{new Date(task.create_time).toLocaleString()}</td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
@@ -167,3 +229,30 @@
         </div>
     {/if}
 </div>
+
+<style>
+    /* 旋转动画：用于刷新或运行中的图标 */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        display: inline-block;
+        animation: spin 2s linear infinite;
+    }
+
+    /* 呼吸灯动画：让用户感觉到“实时监控中” */
+    @keyframes pulse-opacity {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    .status-updating {
+        animation: pulse-opacity 2s ease-in-out infinite;
+    }
+
+    /* 状态变更时的平滑过渡 */
+    .status-cell {
+        transition: all 0.3s ease;
+    }
+</style>

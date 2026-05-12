@@ -7,8 +7,6 @@ export function GET() {
     return json(test_task_data);
 }
 
-
-
 export const POST: RequestHandler = async ({ request }) => {
     try {
         // 1. 获取前端传来的 JSON 表单数据
