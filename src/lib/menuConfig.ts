@@ -88,4 +88,6 @@ export const svelteMenuItems = [
     { path: "/v/supersuite", name: "Super Suite" },
     { path: "/v/test_task", name: "Test Task" },
     { path: "/v/login", name: "Login" },
+    // { path: "/v/totp", name: "TOTP" },
+    { path: "/v/captcha", name: "Captcha" },
 ];

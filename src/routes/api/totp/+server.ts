@@ -1,14 +1,15 @@
 import { json } from '@sveltejs/kit';
-import { authenticator } from 'otplib';
-import QRCode from 'qrcode'; // 引入二维码生成库
+// 1. 修改导入方式：新版 otplib 推荐引入 OTP 类和标准的生成函数
+import { OTP, generateSecret, verify } from 'otplib'; 
+import QRCode from 'qrcode';
 
-// npm install qrcode
-// npm install otplib
+// export const tempStorage = new Map();
+import { tempStorage } from '../totpStore.ts'; 
 
-
-// 临时存储未激活的 secret（生产环境请存入数据库临时表、Redis 或 Session）
-const tempStorage = new Map();
 const APP_NAME = 'MyAwesomeApp';
+
+// 2. 初始化一个标准的 TOTP 实例
+const totp = new OTP({ strategy: 'totp' });
 
 /**
  * 步骤 1：生成密钥并直接转换成 Base64 二维码图片
@@ -16,22 +17,24 @@ const APP_NAME = 'MyAwesomeApp';
 export async function GET({ url }) {
     const username = url.searchParams.get('username') || 'user@example.com';
 
-    // 1. 生成共享密钥与标准 URI
-    const secret = authenticator.generateSecret();
-    const otpauthUri = authenticator.keyuri(username, APP_NAME, secret);
+    // 使用官方标准的 generateSecret() 函数生成 Base32 共享密钥
+    const secret = generateSecret();
+    
+    // 使用新版实例自带的 generateURI 方法构建标准的 otpauth:// URI
+    const otpauthUri = totp.generateURI({
+        secret,
+        label: username,
+        issuer: APP_NAME
+    });
 
-    // 2. 将未激活的密钥临时存起来，等待验证
     tempStorage.set(username, { secret, createdAt: Date.now() });
 
     try {
-        // 3. 【核心】在后端直接将 URI 转化为 Base64 图片字符串
-        // 返回格式类似于 "data:image/png;base64,iVBORw0KGgoAAAANSUh..."
         const qrCodeBase64 = await QRCode.toDataURL(otpauthUri, {
             width: 200,
             margin: 2
         });
 
-        // 4. 只返回 Base64 图片，secret 和 uri 彻底被隐藏在后端
         return json({ qrCodeBase64, username });
     } catch (err) {
         return json({ success: false, message: '二维码生成失败' }, { status: 500 });
@@ -39,7 +42,7 @@ export async function GET({ url }) {
 }
 
 /**
- * 步骤 2：接收 6 位验证码并验证（保持不变）
+ * 步骤 2：接收 6 位验证码并验证
  */
 export async function POST({ request }) {
     const { username, token } = await request.json();
@@ -53,14 +56,23 @@ export async function POST({ request }) {
         return json({ success: false, message: '验证超时，请刷新重试' }, { status: 400 });
     }
 
-    // 校验用户输入的 6 位验证码
-    const isValid = authenticator.check(token, record.secret);
+    try {
+        // 使用新版官方推荐的异步异步 verify 校验函数，更加安全高效
+        const result = await verify({
+            secret: record.secret,
+            token: token,
+            window: 1 // 允许 ±30 秒的时间步长容错
+        });
 
-    if (isValid) {
-        // 校验成功，在此处编写数据库入库逻辑...
-        tempStorage.delete(username);
-        return json({ success: true, message: '安全绑定成功！' });
-    } else {
-        return json({ success: false, message: '验证码错误，请重新输入' }, { status: 400 });
+        // 校验结果存储在 result.valid 中
+        if (result.valid) {
+            // 校验成功，执行数据库入库逻辑...
+            // tempStorage.delete(username);
+            return json({ success: true, message: '安全绑定成功！' });
+        } else {
+            return json({ success: false, message: '验证码错误，请重新输入' }, { status: 400 });
+        }
+    } catch (error) {
+        return json({ success: false, message: '校验过程出错' }, { status: 500 });
     }
 }

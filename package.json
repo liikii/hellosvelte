@@ -22,7 +22,7 @@
 		"@types/node": "^25.6.0",
 		"json-server": "^1.0.0-beta.15",
 		"sass": "^1.99.0",
-		"svelte": "^5.55.2",
+		"svelte": "^5.55.7",
 		"svelte-check": "^4.4.6",
 		"typescript": "^6.0.2",
 		"vite": "^8.0.7"
@@ -31,8 +31,13 @@
 		"@popperjs/core": "^2.11.8",
 		"bootstrap": "^5.3.8",
 		"bootstrap-icons": "^1.13.1",
+		"cookie": "^1.1.1",
+		"devalue": "^5.8.1",
 		"marked": "^18.0.2",
+		"otplib": "^13.4.0",
+		"qrcode": "^1.5.4",
 		"svelte-qrcode": "^1.0.1",
+		"svg-captcha": "^1.4.0",
 		"tippy.js": "^6.3.7"
 	}
 }
