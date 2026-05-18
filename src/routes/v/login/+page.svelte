@@ -2,7 +2,7 @@
     import "bootstrap/dist/css/bootstrap.min.css";
     import { goto } from "$app/navigation";
     import { encryptWithRsa } from "$lib/utils";
-    import { onMount } from 'svelte';
+    let { data } = $props();
 
     // ========== Svelte5 状态定义 ==========
     let form = $state({
@@ -14,9 +14,10 @@
     let loading = $state(false);
     let errorMsg = $state("");
 
+
     // 【修改點】改為請求本地 /api/captcha 接口
-    let captchaUrl = $state("");
-    let isFetchingCaptcha = $state(false);
+    let captchaUrl = $derived(data.captcha_img);
+    let capt_code = $derived(data.capt_code);
 
     // 最新 $derived 计算属性
     let formValid = $derived(
@@ -27,20 +28,27 @@
 
     // 【修改點】標準的驗證碼刷新邏輯（加上時間戳防止緩存）
     async function refreshCaptcha() {
-        if (isFetchingCaptcha) return;
-        isFetchingCaptcha = true;
-        try {
-            const res = await fetch(`/api/captcha?t=${Date.now()}`);
-            const data = await res.json();
-            if (res.ok && data.base64_img) {
-                captchaUrl = data.base64_img;
-            }
-        } catch (err) {
-            console.error('刷新验证码失败', err);
-        } finally {
-            isFetchingCaptcha = false;
-        }
+        const res = await fetch(`/api/captcha?t=${Date.now()}`);
+        const data = await res.json();
+        captchaUrl = data.base64_img;
+        capt_code = data.capt_code;
     }
+
+    // async function refreshCaptcha() {
+    //     if (isFetchingCaptcha) return;
+    //     isFetchingCaptcha = true;
+    //     try {
+    //         const res = await fetch(`/api/captcha?t=${Date.now()}`);
+    //         const data = await res.json();
+    //         if (res.ok && data.base64_img) {
+    //             captchaUrl = data.base64_img;
+    //         }
+    //     } catch (err) {
+    //         console.error('刷新验证码失败', err);
+    //     } finally {
+    //         isFetchingCaptcha = false;
+    //     }
+    // }
 
     async function handleLogin(e: SubmitEvent) {
         e.preventDefault();
@@ -80,9 +88,6 @@
         }
     }
 
-    onMount(() => {
-        refreshCaptcha(); // 页面加载时首发获取验证码
-    });
 </script>
 
 <!-- 亮色系极简容器 (使用全 Bootstrap 5 原子化样式控制宽度，无需自定义样式类) -->
@@ -172,7 +177,7 @@
                                         src={captchaUrl}
                                         alt="Captcha"
                                         class="w-100 h-100 user-select-none"
-                                        style="object-fit: fill; cursor: pointer; opacity: {isFetchingCaptcha ? 0.5 : 1}; transition: opacity 0.15s;"
+                                        style="object-fit: fill; cursor: pointer; opacity: 1; transition: opacity 0.15s;"
                                         onclick={refreshCaptcha}
                                         title="点击刷新验证码"
                                     />

@@ -25,7 +25,7 @@ export const GET: RequestHandler = async () => {
         const base64_img = `data:image/svg+xml;base64,${base64Data}`;
 
         // 3. 按您的要求格式返回
-        return json({ base64_img });
+        return json({ base64_img, capt_code: captcha.text.toLowerCase() });
     } catch (err) {
         console.error('svg-captcha 生成失败:', err);
         return json({ base64_img: '', error: '验证码生成失败' }, { status: 500 });
