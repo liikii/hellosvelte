@@ -8,6 +8,7 @@
     import TestTaskDetail from "./TestTaskDetail.svelte";
     import { onMount } from "svelte";
     import MsgToast from "$lib/MsgToast.svelte";
+    import HostCheck from "./HostCheck.svelte";
 
     let { data } = $props();
 
@@ -152,6 +153,24 @@
             // 唤醒消息弹窗
             toastShow = true;
         }
+    }
+
+    // 1. 定义控制状态（初始为 false）
+    let showHostCheck = $state(false);
+
+    // 2. 定义存放当前选中行数据的变量（初始为 null 即可）
+    let selectedTask = $state<any>(null);
+
+    // 3. 点击触发函数：传入当前行的 task 对象
+    function openCheckModal(taskItem: any) {
+        // 转换为组件需要的结构（把 id 映射为 task_id）
+        selectedTask = {
+            id: taskItem.id,
+            test_host: taskItem.test_host,
+            test_host_usr: taskItem.test_host_usr,
+            test_host_pwd: taskItem.test_host_pwd
+        };
+        showHostCheck = true; // 打开弹窗
     }
 
 </script>
@@ -342,7 +361,7 @@
                                                 </li>
                                                 <li>
                                                     <button
-                                                        class="dropdown-item"
+                                                        class="dropdown-item" onclick={() => openCheckModal(task)}
                                                         ><i
                                                             class="bi bi-hdd-network me-2"
                                                         ></i>Host检查</button
@@ -426,6 +445,10 @@
     autoClose={true}
     duration={6000}
 />
+
+{#if showHostCheck && selectedTask}
+    <HostCheck bind:task={selectedTask} bind:open={showHostCheck} />
+{/if}
 
 <style>
     /* 旋转动画：用于刷新或运行中的图标 */
