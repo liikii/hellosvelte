@@ -35,9 +35,13 @@
         });
         if (res.ok) onSave();
     }
-</script>
 
-<div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+    let showPwd = $state(false);
+
+
+</script>
+<!-- <div class="card shadow-sm border-0 mx-auto" style="max-width: 800px;"></div> -->
+<div class="card shadow-sm border-0 mx-auto" style="max-width: 700px;">
     <div class="card-header bg-white py-3"><h5 class="mb-0 fw-bold">创建新测试任务</h5></div>
     <div class="card-body p-4">
         
@@ -84,13 +88,26 @@
         </div>
 
         <div class="row">
-            <div class="col-6 mb-3">
+            <div class="col-4 mb-3">
                 <label for="test_host_usr" class="form-label small fw-bold">SSH 用户</label>
                 <input id="test_host_usr" type="text" class="form-control" bind:value={formData.test_host_usr} />
             </div>
-            <div class="col-6 mb-3">
+            <div class="col-8 mb-3">
                 <label for="test_host_pwd" class="form-label small fw-bold">SSH 密码</label>
-                <input id="test_host_pwd" type="password" class="form-control" bind:value={formData.test_host_pwd} />
+                <!-- 关键修改：添加 input-group 包裹层 -->
+                <div class="input-group">
+                    <input id="test_host_pwd" type={showPwd ? "text" : "password"} class="form-control" bind:value={formData.test_host_pwd} />
+                    <button 
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        onmousedown={() => showPwd = true}
+                        onmouseup={() => showPwd = false}
+                        onmouseleave={() => showPwd = false}
+                        title={showPwd ? "隐藏密码" : "显示密码"}
+                    >
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
