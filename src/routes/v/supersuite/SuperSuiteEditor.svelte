@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { fade, slide } from 'svelte/transition';
+    import { slide } from 'svelte/transition';
+    import MsgToast from '$lib/MsgToast.svelte';
 
     let { suiteId, onSaveSuccess, onCancel } = $props<{
         suiteId: string | number;
@@ -157,6 +158,18 @@
         }
     }
 
+     // ✨ 新增：Toast 状态管理
+    let toastShow = $state(false);
+    let toastType = $state<'success' | 'danger' | 'warning' | 'info'>('success');
+    let toastMsg = $state('');
+
+    // ✨ 封装触发 Toast 的快捷函数
+    function showToast(msg: string, type: typeof toastType = 'success') {
+        toastMsg = msg;
+        toastType = type;
+        toastShow = true;
+    }
+
     // 保存更新
     async function handleUpdate() {
         isSubmitting = true;
@@ -173,7 +186,23 @@
                     super_suite_data: cleanedSuites
                 })
             });
-            if (res.ok) onSaveSuccess();
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // 成功回显
+                showToast(data.message || 'Super Suite 更新成功！', 'success');
+                // 延迟执行成功回调，让用户看清 Toast 提示
+                setTimeout(() => {
+                    onSaveSuccess();
+                }, 1500);
+            } else {
+                // 业务级失败回显（如后端拦截报错）
+                showToast(data.message || '更新失败，请重试！', 'danger');
+            }
+        } catch (err) {
+            // 网络级或代码崩溃失败回显
+            showToast('网络请求异常，请稍后重试！', 'danger');
         } finally {
             isSubmitting = false;
         }
@@ -393,6 +422,15 @@
         </div>
     </div>
 {/if}
+
+
+<MsgToast
+    bind:show={toastShow}
+    type={toastType}
+    message={toastMsg}
+    autoClose={true}
+    duration={4000}
+/>
 
 
 <style>
