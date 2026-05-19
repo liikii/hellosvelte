@@ -195,7 +195,7 @@
                 // 延迟执行成功回调，让用户看清 Toast 提示
                 setTimeout(() => {
                     onSaveSuccess();
-                }, 1500);
+                }, 1300);
             } else {
                 // 业务级失败回显（如后端拦截报错）
                 showToast(data.message || '更新失败，请重试！', 'danger');
