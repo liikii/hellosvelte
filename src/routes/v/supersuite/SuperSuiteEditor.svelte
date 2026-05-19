@@ -43,6 +43,10 @@
             for (const suite of selectedSuites) {
                 await fetchFullCases(suite.suite_id);
             }
+            // 如果当前存在已选套件，默认展开第一个
+            if (selectedSuites && selectedSuites.length > 0) {
+                activeSuiteId = selectedSuites[0].suite_id;
+            }
         } finally {
             loading = false;
         }
@@ -157,12 +161,16 @@
     async function handleUpdate() {
         isSubmitting = true;
         try {
+            const cleanedSuites = selectedSuites.filter(
+                suite => suite.suite_cases && suite.suite_cases.length > 0
+            );
+
             const res = await fetch(`/api/super_suite/${suiteId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     super_suite_name: superSuiteName,
-                    super_suite_data: selectedSuites
+                    super_suite_data: cleanedSuites
                 })
             });
             if (res.ok) onSaveSuccess();
@@ -170,6 +178,16 @@
             isSubmitting = false;
         }
     }
+
+    let activeSuiteId = $state<string | null>(null);
+
+    function addAllFilteredSuites() {
+        availableMugenSuites.forEach(suite => {
+            addSuite(suite);
+        });
+        leftSearch = '';
+    }
+
 </script>
 
 {#if loading}
@@ -187,18 +205,37 @@
         </div>
     </div>
 
-    <div class="row g-3">
+    <!-- 
+        由于去掉了自定义 CSS 的 panel-height 计算，
+        这里使用标准内联样式 style="height: calc(100vh - 160px);" 来维持固定高度滚动 
+    -->
+    <div class="row g-3" style="height: calc(100vh - 160px);">
         <!-- 左栏：测试套件选择库 -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 panel-height">
-                <div class="card-header bg-white border-0 pt-3">
-                    <h6 class="fw-bold text-secondary">添加测试套件库</h6>
-                    <input type="text" class="form-control form-control-sm bg-light" placeholder="搜索库..." bind:value={leftSearch} />
+        <div class="col-md-3 h-100">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <h6 class="fw-bold text-secondary mb-2">添加测试套件库</h6>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control bg-light" placeholder="搜索库..." bind:value={leftSearch} />
+                        <button 
+                            class="btn btn-outline-primary" 
+                            type="button" 
+                            title="一键追加当前搜索到的所有套件"
+                            disabled={availableMugenSuites.length === 0}
+                            onclick={addAllFilteredSuites}
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body overflow-auto">
+                <!-- 移除了自定义按钮样式，完全使用原生 btn-light + 紧凑 Padding (py-1 px-2) + 极小字号 (small) -->
+                <div class="card-body overflow-auto pt-0 px-2">
                     {#each availableMugenSuites as suite}
-                        <button class="btn btn-tile-light w-100 text-start mb-2" onclick={() => addSuite(suite)}>
-                            <i class="bi bi-plus-circle me-2"></i>{suite.suite_name}
+                        <button 
+                            class="btn btn-light border text-start w-100 mb-1 py-1 px-2 small text-truncate" 
+                            onclick={() => addSuite(suite)}
+                        >
+                            <i class="bi bi-plus-lg me-1 text-success"></i>{suite.suite_name}
                         </button>
                     {/each}
                 </div>
@@ -206,106 +243,157 @@
         </div>
 
         <!-- 右栏：精细化组合编辑器 -->
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 panel-height bg-light bg-opacity-50">
-                <div class="card-header bg-white border-0 pt-3">
+        <div class="col-md-9 h-100">
+            <div class="card shadow-sm border-0 h-100 bg-light bg-opacity-50">
+                <div class="card-header bg-white border-0 pt-3 pb-1">
                     <h6 class="fw-bold text-primary">包含的套件与用例详情</h6>
                 </div>
-                <div class="card-body overflow-auto pt-2">
-                    {#each selectedSuites as suite (suite.suite_id)}
-                        {@const matchResult = getMatchedCasesForSuite(suite.suite_id, suite.suite_cases)}
-                        <div class="card border-0 shadow-sm mb-3 rounded-3" in:slide>
-                            <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pb-0">
-                                <span class="fw-bold"><i class="bi bi-collection me-2 text-primary"></i>{suite.suite_name}</span>
-                                <button class="btn btn-sm btn-outline-danger border-0" onclick={() => removeSuite(suite.suite_id)}>移除套件</button>
-                            </div>
-
-                            <!-- 注入功能：Pattern 批量管理面板 -->
-                            <div class="px-3 py-2 bg-light border-top border-bottom my-2">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-sm-6">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-regex"></i></span>
-                                            <input 
-                                                type="text" 
-                                                class="form-control form-control-sm border-start-0 font-monospace text-sm" 
-                                                placeholder="过滤规则 (如 login|v2_.*)" 
-                                                bind:value={suitePatterns[suite.suite_id]} 
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 d-flex gap-2 justify-content-end">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-xs btn-success text-nowrap fw-bold"
-                                            disabled={matchResult.appendable.length === 0}
-                                            onclick={() => batchAppendByPattern(suite.suite_id, matchResult.appendable)}
-                                        >
-                                            <i class="bi bi-plus-lg me-1"></i>追加 ({matchResult.appendable.length})
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-xs btn-outline-danger text-nowrap fw-bold"
-                                            disabled={matchResult.removable.length === 0}
-                                            onclick={() => batchRemoveByPattern(suite.suite_id, matchResult.removable)}
-                                        >
-                                            <i class="bi bi-dash-lg me-1"></i>移除 ({matchResult.removable.length})
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card-body pt-1">
-                                <div class="d-flex flex-wrap gap-2">
-                                    <!-- 已选择加入的 Case 标签 -->
-                                    {#each suite.suite_cases as c}
-                                        <!-- 判断当前 case 是否在匹配移除的正则中 -->
-                                        {@const isMatchedToRemove = matchResult.removable.some(rc => rc.case_id === c.case_id)}
-                                        <span class="badge bg-primary d-flex align-items-center gap-1 py-2 px-3">
-                                            <!-- 关键点：如果是命中的用例，图标变成红色高亮的减号 -->
-                                            <i class="bi {isMatchedToRemove ? 'bi-dash-circle text-warning fw-bold' : 'bi-check-circle'}"></i>
-                                            <span class:text-warning={isMatchedToRemove} class:fw-bold={isMatchedToRemove}>
-                                                {c.case_name}
-                                            </span>
-                                            <button 
-                                                type="button" 
-                                                class="btn p-0 border-0 lh-1 text-white opacity-75 btn-remove-badge ms-1" 
-                                                onclick={() => removeCase(suite.suite_id, c.case_id)}
-                                                aria-label="移除用例"
-                                            >
-                                                <i class="bi bi-x-circle-fill"></i>
-                                            </button>
+                <div class="card-body overflow-auto pt-1">
+                    <div class="row g-2">
+                        {#each selectedSuites as suite (suite.suite_id)}
+                            {@const isOpen = activeSuiteId === suite.suite_id}
+                            {@const matchResult = getMatchedCasesForSuite(suite.suite_id, suite.suite_cases)}
+                            
+                            <!-- 
+                                网格系统：展开时占据一整行(col-12)，收起时呈现多行多列紧凑排布
+                                完全利用 Bootstrap 内联边框颜色类进行状态高亮 
+                            -->
+                            <div class={isOpen ? "col-12" : "col-sm-6 col-md-4 col-lg-3"} in:slide>
+                                <div 
+                                    class="card border shadow-sm rounded-3 h-100" 
+                                    class:border-primary={isOpen} 
+                                    class:border-light={!isOpen}
+                                >
+                                    <!-- 
+                                        卡片头部：通过样式类实现手势和 hover 背景
+                                        使用 btn 类包裹头部实现原生的光标效果和点击态 
+                                    -->
+                                    <div 
+                                        class="card-header bg-white d-flex justify-content-between align-items-center border-0 py-2"
+                                        style="cursor: pointer; user-select: none;"
+                                        role="button"
+                                        tabindex="0"
+                                        onclick={() => activeSuiteId = isOpen ? null : suite.suite_id}
+                                        onkeydown={(e) => e.key === 'Enter' && (activeSuiteId = isOpen ? null : suite.suite_id)}
+                                    >
+                                        <span class="fw-bold text-truncate small" title={suite.suite_name}>
+                                            <i class="bi {isOpen ? 'bi-chevron-down text-primary' : 'bi-chevron-right text-muted'} me-1"></i>
+                                            {suite.suite_name}
                                         </span>
-                                    {/each}
+                                        <button 
+                                            class="btn btn-link btn-sm p-0 text-danger border-0 text-decoration-none shadow-none" 
+                                            onclick={(e) => { e.stopPropagation(); removeSuite(suite.suite_id); }}
+                                            title="移除此套件"
+                                        >
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
 
-                                    <!-- 待挑选加入的剩余库 Case 标签 -->
-                                    {#if fullCasesMap[suite.suite_id]}
-                                        {#each fullCasesMap[suite.suite_id].filter(fc => !suite.suite_cases.some((sc: any) => sc.case_id === fc.case_id)) as fc}
-                                            <!-- 判断当前 case 是否在匹配追加的正则中 -->
-                                            {@const isMatchedToAppend = matchResult.appendable.some(ac => ac.case_id === fc.case_id)}
-                                            <button 
-                                                type="button" 
-                                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center gap-1 py-2 px-3 cp-add" 
-                                                class:border-success={isMatchedToAppend}
-                                                class:text-success={isMatchedToAppend}
-                                                onclick={() => addCase(suite.suite_id, fc)}
-                                            >
-                                                <!-- 关键点：如果是命中待追加的用例，图标高亮变成绿色加号 -->
-                                                <i class="bi {isMatchedToAppend ? 'bi-plus-circle text-success fw-bold' : 'bi-plus-lg'}"></i> 
-                                                <span class:fw-bold={isMatchedToAppend}>{fc.case_name}</span>
-                                            </button>
-                                        {/each}
+                                    {#if isOpen}
+                                        <div class="bg-white border-top rounded-bottom" transition:slide>
+                                            <!-- Pattern 批量管理面板 -->
+                                            <div class="px-3 py-2 bg-light border-bottom">
+                                                <div class="row g-2 align-items-center">
+                                                    <div class="col-sm-7">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text bg-white border-end-0 text-muted py-0 px-2">
+                                                                <i class="bi bi-regex small"></i>
+                                                            </span>
+                                                            <!-- 通过 Bootstrap 的 style="font-size: 0.8rem;" 代替外部 class -->
+                                                            <input 
+                                                                type="text" 
+                                                                class="form-control form-control-sm border-start-0 font-monospace" 
+                                                                style="font-size: 0.8rem;"
+                                                                placeholder="过滤规则 (如 login|v2_.*)" 
+                                                                bind:value={suitePatterns[suite.suite_id]} 
+                                                                onclick={(e) => e.stopPropagation()} 
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-5 d-flex gap-1 justify-content-end">
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-success btn-sm text-nowrap py-0.5 px-2"
+                                                            style="font-size: 0.75rem; border-radius: 4px;"
+                                                            disabled={matchResult.appendable.length === 0}
+                                                            onclick={(e) => { e.stopPropagation(); batchAppendByPattern(suite.suite_id, matchResult.appendable); }}
+                                                        >
+                                                            追加({matchResult.appendable.length})
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-outline-danger btn-sm text-nowrap py-0.5 px-2"
+                                                            style="font-size: 0.75rem; border-radius: 4px;"
+                                                            disabled={matchResult.removable.length === 0}
+                                                            onclick={(e) => { e.stopPropagation(); batchRemoveByPattern(suite.suite_id, matchResult.removable); }}
+                                                        >
+                                                            移除({matchResult.removable.length})
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="card-body pt-2 pb-3">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <!-- 已选择加入的 Case 标签 -->
+                                                    {#each suite.suite_cases as c}
+                                                        {@const isMatchedToRemove = matchResult.removable.some(rc => rc.case_id === c.case_id)}
+                                                        <span 
+                                                            class="badge bg-primary d-flex align-items-center gap-1 py-1.5 px-2 font-monospace"
+                                                            style="font-size: 0.75rem; font-weight: normal; border-radius: 4px;"
+                                                        >
+                                                            <i class="bi {isMatchedToRemove ? 'bi-dash-circle text-warning fw-bold' : 'bi-check-circle'}"></i>
+                                                            <span class:text-warning={isMatchedToRemove} class:fw-bold={isMatchedToRemove}>
+                                                                {c.case_name}
+                                                            </span>
+                                                            <button 
+                                                                type="button" 
+                                                                class="btn p-0 border-0 lh-1 text-white opacity-75 ms-1" 
+                                                                style="font-size: 0.75rem;"
+                                                                onclick={(e) => { e.stopPropagation(); removeCase(suite.suite_id, c.case_id); }}
+                                                            >
+                                                                <i class="bi bi-x-circle-fill"></i>
+                                                            </button>
+                                                        </span>
+                                                    {/each}
+
+                                                    <!-- 待挑选加入的剩余库 Case 标签（完全通过内联样式和原生组件表达） -->
+                                                    {#if fullCasesMap[suite.suite_id]}
+                                                        {#each fullCasesMap[suite.suite_id].filter(fc => !suite.suite_cases.some((sc: any) => sc.case_id === fc.case_id)) as fc}
+                                                            {@const isMatchedToAppend = matchResult.appendable.some(ac => ac.case_id === fc.case_id)}
+                                                            <button 
+                                                                type="button" 
+                                                                class="badge bg-secondary bg-opacity-10 text-secondary border d-flex align-items-center gap-1 py-1.5 px-2 text-start" 
+                                                                style="font-size: 0.75rem; font-weight: normal; border-radius: 4px; cursor: pointer;"
+                                                                class:border-success={isMatchedToAppend}
+                                                                class:text-success={isMatchedToAppend}
+                                                                class:border-secondary={!isMatchedToAppend}
+                                                                class:border-opacity-25={!isMatchedToAppend}
+                                                                onclick={(e) => { e.stopPropagation(); addCase(suite.suite_id, fc); }}
+                                                            >
+                                                                <i class="bi {isMatchedToAppend ? 'bi-plus-circle text-success fw-bold' : 'bi-plus-lg'}"></i> 
+                                                                <span class:fw-bold={isMatchedToAppend}>{fc.case_name}</span>
+                                                            </button>
+                                                        {/each}
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {#if !isOpen}
+                                        <!-- 收起状态下，卡片底部垫个白底，保持多列排布时的视觉对齐 -->
+                                        <div class="bg-white py-1"></div>
+                                    {/if}
                                     {/if}
                                 </div>
                             </div>
-
-                        </div>
-                    {/each}
+                        {/each}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 {/if}
+
 
 <style>
     .panel-height { height: calc(100vh - 200px); }
