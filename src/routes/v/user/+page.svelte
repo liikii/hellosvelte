@@ -2,6 +2,7 @@
     import { goto, invalidateAll } from "$app/navigation";
     import Pagination from "$lib/Pagination.svelte";
     import { onMount } from "svelte";
+    import UserCreate from "./UserCreate.svelte";
 
     let { data } = $props();
 
@@ -68,28 +69,28 @@
 		
 	});
 
-    async function saveUser() {
-        try {
-            const res = await fetch('/api/user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newUser)
-            });
+    // async function saveUser() {
+    //     try {
+    //         const res = await fetch('/api/user', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(newUser)
+    //         });
 
-            if (res.ok) {
-                modalInstance.hide(); // 关闭弹窗
-                newUser = { name: '', mail: '', desc: '', user_status: 1 }; // 重置表单
-                invalidateAll(); // 刷新列表
-            } else {
-                const err = await res.json();
-                alert("保存失败: " + (err.message || "未知错误"));
-            }
-        } catch (e) {
-            alert("提交请求失败");
-        }
-    }
+    //         if (res.ok) {
+    //             modalInstance.hide(); // 关闭弹窗
+    //             newUser = { name: '', mail: '', desc: '', user_status: 1 }; // 重置表单
+    //             invalidateAll(); // 刷新列表
+    //         } else {
+    //             const err = await res.json();
+    //             alert("保存失败: " + (err.message || "未知错误"));
+    //         }
+    //     } catch (e) {
+    //         alert("提交请求失败");
+    //     }
+    // }
     // --- 结束 ---
-    
+    let showCreateModal = $state(false);
 
 </script>
 <div class="container-fluid mt-4 px-4"> <!-- 改为全屏流布局 -->
@@ -101,8 +102,8 @@
             <p class="text-muted small mb-0">管理系统访问权限与用户信息</p>
         </div>
         <div class="d-flex gap-3">
-            <button class="btn btn-primary d-flex align-items-center px-3 shadow-sm rounded-pill" onclick={() => modalInstance.show()}>
-                <i class="bi bi-person-plus-fill me-2"></i> 新增用户
+            <button class="btn btn-primary d-flex align-items-center px-3 shadow-sm rounded-pill" onclick={() => showCreateModal = true}>
+                <i class="bi bi-person-plus-fill me-2"></i> 新增用戶
             </button>
             <div class="badge bg-white text-dark border d-flex align-items-center px-3 shadow-sm rounded-pill">
                 <span class="text-muted me-1">总计:</span> <strong>{data.total}</strong>
@@ -188,48 +189,7 @@
 </div>
 
 <!-- Modal 部分保持之前的 a11y 修正即可 ... -->
-
-
-
-<!-- 新增用户模态框 -->
-<div class="modal fade" bind:this={modalElement} tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold">新增用户信息</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" title="关闭"></button>
-            </div>
-            <div class="modal-body">
-                <form onsubmit={(e) => { e.preventDefault(); saveUser(); }}>
-                    <div class="mb-3">
-                        <label for="userNameInput" class="form-label small fw-bold">用户名</label>
-                        <input id="userNameInput" type="text" class="form-control" bind:value={newUser.name} placeholder="输入用户名" required />
-                    </div>
-                    <div class="mb-3">
-                        <label for="emailInput" class="form-label small fw-bold">邮箱</label>
-                        <input id="emailInput" type="email" class="form-control" bind:value={newUser.mail} placeholder="example@mail.com" required />
-                    </div>
-                    <div class="mb-3">
-                        <label for="descInput" class="form-label small fw-bold">用户描述</label>
-                        <textarea id="descInput" class="form-control" rows="3" bind:value={newUser.desc} placeholder="简单描述一下用户..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="statusInput" class="form-label small fw-bold">初始状态</label>
-                        <select id="statusInput" class="form-select" bind:value={newUser.user_status}>
-                            <option value={1}>启用</option>
-                            <option value={2}>禁用</option>
-                        </select>
-                    </div>
-                    <div class="modal-footer px-0 pb-0 border-0">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
-                        <button type="submit" class="btn btn-primary px-4">保存用户</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
+<UserCreate bind:show={showCreateModal} onSaveSuccess={() => invalidateAll()} />
 
 <style>
     .table { font-size: 0.95rem; }
